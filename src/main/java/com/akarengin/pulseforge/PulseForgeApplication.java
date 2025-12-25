@@ -4,10 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PulseforgeApplication {
+public class PulseForgeApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PulseforgeApplication.class, args);
+        SpringApplication.run(PulseForgeApplication.class, args);
     }
-
 }
