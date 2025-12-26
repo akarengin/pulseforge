@@ -13,7 +13,7 @@
   <artifactId>pulseforge</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>pulseforge</name>
-  <description>pulseforge</description>
+  <description>Multi-tenant event ingestion and analytics platform</description>
   <url/>
   <licenses>
     <license/>
@@ -58,6 +58,14 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
     </dependency>
 
     <dependency>
