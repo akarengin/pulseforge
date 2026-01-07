@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: pulseforge
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pulseforge
+    username: pulseforge
+    password: pulseforge_dev_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: pulseforge
+    password: pulseforge_dev_password
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 10
+
+  security:
+    user:
+      name: admin
+      password: admin
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.akarengin.pulseforge: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
