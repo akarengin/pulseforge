@@ -9,12 +9,15 @@ CREATE INDEX idx_workspace_name ON workspaces(name);
 
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
+    workspace_id BIGINT NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_user_workspace_id ON users(workspace_id);
 CREATE INDEX idx_user_email ON users(email);
 
 CREATE TABLE projects (

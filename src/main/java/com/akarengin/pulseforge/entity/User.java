@@ -26,6 +26,10 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
+
     @Column(nullable = false)
     private Instant createdAt;
 
