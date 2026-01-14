@@ -1,3 +1,6 @@
+-- Day 2: Multi-tenancy foundation
+-- Add workspace tables and link existing entities
+
 CREATE TABLE workspaces (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -30,3 +33,6 @@ CREATE TABLE projects (
 );
 
 CREATE INDEX idx_project_workspace_id ON projects(workspace_id);
+
+-- TODO Day 2: Add workspace_id to events table
+-- TODO Day 2: Create Membership entity for RBAC
