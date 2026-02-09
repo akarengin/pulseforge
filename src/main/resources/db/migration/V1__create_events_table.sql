@@ -3,7 +3,7 @@
 CREATE TABLE events (
     id BIGSERIAL PRIMARY KEY,
     type VARCHAR(100) NOT NULL,
-    payload JSONB,
+    payload JSONB NOT NULL,
     timestamp TIMESTAMP NOT NULL
 );
 

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record EventRequest(
     @NotBlank String type,
-    @NotNull Object payload
+    @NotNull String payload
 ) {
+
 }

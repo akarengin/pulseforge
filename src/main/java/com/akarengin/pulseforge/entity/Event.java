@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 // Maps to 'events' table in PostgreSQL
 @Entity
@@ -24,7 +26,9 @@ public class Event {
     @Column(nullable = false)
     private String type;
 
-    // Stored as String, PostgreSQL handles JSONB serialization
+    // Store payload as PostgreSQL JSONB and bind it as a JDBC JSON type.
+    // Keeps the payload opaque in Java while allowing proper JSONB handling in PostgreSQL.
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String payload;
 

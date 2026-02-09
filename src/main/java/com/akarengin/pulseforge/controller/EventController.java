@@ -21,4 +21,5 @@ public class EventController {
         Event createdEvent = eventService.createEvent(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
+
 }
