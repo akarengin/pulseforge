@@ -1,14 +1,27 @@
 package com.akarengin.pulseforge.entity;
 
-import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
+
+import com.vladmihalcea.hibernate.type.json.JsonType;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 // Maps to 'events' table in PostgreSQL
 @Entity
@@ -20,17 +33,21 @@ import org.hibernate.type.SqlTypes;
 public class Event {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
 
     @Column(nullable = false)
     private String type;
 
-    // Store payload as PostgreSQL JSONB and bind it as a JDBC JSON type.
-    // Keeps the payload opaque in Java while allowing proper JSONB handling in PostgreSQL.
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private String payload;
+    @Type(JsonType.class)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private Map<String, Object> payload;
 
     @Column(nullable = false)
     private Instant timestamp;
