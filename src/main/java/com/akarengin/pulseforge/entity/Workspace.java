@@ -1,24 +1,28 @@
 package com.akarengin.pulseforge.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "workspaces")
 @Data
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Workspace {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String name;

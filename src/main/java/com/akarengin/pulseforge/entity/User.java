@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "users")
@@ -17,18 +19,16 @@ import java.time.Instant;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String passwordHash;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "workspace_id", nullable = false)
-    private Workspace workspace;
 
     @Column(nullable = false)
     private Instant createdAt;

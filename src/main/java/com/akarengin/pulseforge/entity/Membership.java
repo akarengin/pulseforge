@@ -11,12 +11,12 @@ import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "projects")
+@Table(name = "memberships")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Project {
+public class Membership {
 
     @Id
     @GeneratedValue
@@ -28,22 +28,18 @@ public class Project {
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace workspace;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Column(nullable = false)
-    private String name;
+    private String role;
 
     @Column(nullable = false)
     private Instant createdAt;
 
-    @Column(nullable = false)
-    private Instant updatedAt;
-
     @PrePersist
     protected void onCreate() {
-        createdAt = updatedAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
+        createdAt = Instant.now();
     }
 }
