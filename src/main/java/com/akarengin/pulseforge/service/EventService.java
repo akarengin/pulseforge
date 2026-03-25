@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.akarengin.pulseforge.dto.EventRequest;
 import com.akarengin.pulseforge.entity.Event;
 import com.akarengin.pulseforge.entity.Workspace;
+import com.akarengin.pulseforge.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.mapper.EventMapper;
 import com.akarengin.pulseforge.repository.EventRepository;
 import com.akarengin.pulseforge.repository.WorkspaceRepository;
@@ -30,7 +31,8 @@ public class EventService {
     @Transactional
     public Event createEvent(UUID workspaceId, EventRequest request) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Workspace not found for ID " + workspaceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found for ID " + workspaceId));
+
 
         Event event = eventMapper.toEntity(request, workspace);
         return eventRepository.save(event);

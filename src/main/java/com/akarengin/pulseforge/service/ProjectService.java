@@ -2,6 +2,7 @@ package com.akarengin.pulseforge.service;
 
 import com.akarengin.pulseforge.entity.Project;
 import com.akarengin.pulseforge.entity.Workspace;
+import com.akarengin.pulseforge.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.repository.ProjectRepository;
 import com.akarengin.pulseforge.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,10 @@ public class ProjectService {
     @Transactional
     public Project createProject(UUID workspaceId, String name) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new IllegalArgumentException("Workspace not found: " + workspaceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found: " + workspaceId));
 
         if (projectRepository.existsByWorkspace_IdAndName(workspaceId, name)) {
-            throw new IllegalArgumentException("Project with name '" + name + "' already exists in this workspace");
+            throw new IllegalStateException("Project with name '" + name + "' already exists in this workspace");
         }
 
         Project project = Project.builder()
@@ -44,7 +45,7 @@ public class ProjectService {
 
     public Project getProject(UUID workspaceId, UUID projectId) {
         return projectRepository.findByWorkspace_IdAndId(workspaceId, projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + projectId + " in workspace " + workspaceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId + " in workspace " + workspaceId));
     }
 
     @Transactional

@@ -3,6 +3,7 @@ package com.akarengin.pulseforge.service;
 import com.akarengin.pulseforge.entity.Membership;
 import com.akarengin.pulseforge.entity.User;
 import com.akarengin.pulseforge.entity.Workspace;
+import com.akarengin.pulseforge.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.repository.MembershipRepository;
 import com.akarengin.pulseforge.repository.UserRepository;
 import com.akarengin.pulseforge.repository.WorkspaceRepository;
@@ -29,19 +30,19 @@ public class MembershipService {
         Workspace workspace = workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> {
                 log.warn("Workspace not found for ID {}", workspaceId);
-                return new IllegalArgumentException("Workspace not found for ID " + workspaceId);
+                return new ResourceNotFoundException("Workspace not found for ID " + workspaceId);
             });
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> {
                 log.warn("User not found for ID {}", userId);
-                return new IllegalArgumentException("User not found for ID " + userId);
+                return new ResourceNotFoundException("User not found for ID " + userId);
             });
 
         membershipRepository.findByWorkspace_IdAndUser_Id(workspaceId, userId)
             .ifPresent(membership -> {
                 log.warn("User {} is already a member of workspace {}", userId, workspaceId);
-                throw new IllegalArgumentException("User already member of workspace");
+                throw new IllegalStateException("User already member of workspace");
             });
 
         Membership membership = Membership.builder()
