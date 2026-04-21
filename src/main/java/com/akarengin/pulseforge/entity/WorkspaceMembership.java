@@ -11,12 +11,14 @@ import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "memberships")
+@Table(name = "workspace_memberships", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"workspace_id", "user_id"})
+})
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Membership {
+public class WorkspaceMembership {
 
     @Id
     @GeneratedValue
@@ -32,8 +34,9 @@ public class Membership {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private WorkspaceRole role;
 
     @Column(nullable = false)
     private Instant createdAt;
