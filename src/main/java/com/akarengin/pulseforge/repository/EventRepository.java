@@ -9,20 +9,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository for Event entity. All queries MUST include workspace_id filtering to prevent
- * cross-tenant data leakage.
+ * Repository for Event entity. All queries MUST include workspace_id AND project_id filtering
+ * to prevent cross-tenant and cross-project data leakage.
  */
 @Repository
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
-    List<Event> findByWorkspace_Id(UUID workspaceId);
+    List<Event> findByWorkspace_IdAndProject_Id(UUID workspaceId, UUID projectId);
 
-    @Query("SELECT e FROM Event e WHERE e.workspace.id = :workspaceId AND e.timestamp BETWEEN :startTime AND :endTime ORDER BY e.timestamp DESC")
-    List<Event> findByWorkspaceAndTimeRange(UUID workspaceId,
-        Instant startTime,
-        Instant endTime);
+    @Query("SELECT e FROM Event e WHERE e.workspace.id = :workspaceId AND e.project.id = :projectId AND e.timestamp BETWEEN :startTime AND :endTime ORDER BY e.timestamp DESC")
+    List<Event> findByWorkspaceAndProjectAndTimeRange(UUID workspaceId, UUID projectId,
+        Instant startTime, Instant endTime);
 
-    @Query("SELECT e FROM Event e WHERE e.workspace.id = :workspaceId AND e.type = :type")
-    List<Event> findByWorkspace_IdAndType(UUID workspaceId, String type);
+    @Query("SELECT e FROM Event e WHERE e.workspace.id = :workspaceId AND e.project.id = :projectId AND e.type = :type")
+    List<Event> findByWorkspace_IdAndProject_IdAndType(UUID workspaceId, UUID projectId, String type);
 
 }
