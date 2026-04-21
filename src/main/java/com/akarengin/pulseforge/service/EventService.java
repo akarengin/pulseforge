@@ -11,6 +11,7 @@ import com.akarengin.pulseforge.entity.Event;
 import com.akarengin.pulseforge.entity.Project;
 import com.akarengin.pulseforge.entity.Workspace;
 import com.akarengin.pulseforge.exception.ResourceNotFoundException;
+import com.akarengin.pulseforge.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.mapper.EventMapper;
 import com.akarengin.pulseforge.repository.EventRepository;
 import com.akarengin.pulseforge.repository.ProjectRepository;
