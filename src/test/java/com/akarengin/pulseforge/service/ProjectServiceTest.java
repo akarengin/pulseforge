@@ -54,7 +54,7 @@ class ProjectServiceTest {
         UUID workspaceId = UUID.randomUUID();
         when(workspaceRepository.findById(workspaceId)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> projectService.createProject(workspaceId, "P"));
+        assertThrows(com.akarengin.pulseforge.exception.ResourceNotFoundException.class, () -> projectService.createProject(workspaceId, "P"));
     }
 
     @Test
@@ -65,6 +65,6 @@ class ProjectServiceTest {
         when(workspaceRepository.findById(workspaceId)).thenReturn(Optional.of(workspace));
         when(projectRepository.existsByWorkspace_IdAndName(workspaceId, "P")).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> projectService.createProject(workspaceId, "P"));
+        assertThrows(IllegalStateException.class, () -> projectService.createProject(workspaceId, "P"));
     }
 }
