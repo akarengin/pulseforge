@@ -9,18 +9,21 @@ import org.mapstruct.ReportingPolicy;
 import com.akarengin.pulseforge.dto.EventRequest;
 import com.akarengin.pulseforge.dto.EventResponse;
 import com.akarengin.pulseforge.entity.Event;
+import com.akarengin.pulseforge.entity.Project;
 import com.akarengin.pulseforge.entity.Workspace;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface EventMapper {
 
     @Mapping(target = "workspaceId", source = "workspace.id")
+    @Mapping(target = "projectId", source = "project.id")
     EventResponse toResponse(Event event);
 
     List<EventResponse> toResponseList(List<Event> events);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "timestamp", ignore = true)
-    Event toEntity(EventRequest request, Workspace workspace);
+    @Mapping(target = "project", source = "project")
+    Event toEntity(EventRequest request, Workspace workspace, Project project);
 
 }

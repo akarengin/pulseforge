@@ -7,6 +7,7 @@ import java.util.UUID;
 public record EventResponse(
     UUID id,
     UUID workspaceId,
+    UUID projectId,
     String type,
     Map<String, Object> payload,
     Instant timestamp
