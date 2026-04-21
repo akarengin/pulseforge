@@ -24,18 +24,18 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/workspaces/{workspaceId}/events")
+@RequestMapping("/api/workspaces/{workspaceId}/projects/{projectId}/events")
 @RequiredArgsConstructor
 public class WorkspaceEventController {
 
     private final EventService eventService;
-
     private final EventMapper eventMapper;
 
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(@PathVariable UUID workspaceId,
+                                             @PathVariable UUID projectId,
                                              @Valid @RequestBody EventRequest request) {
-        Event event = eventService.createEvent(workspaceId, request);
+        Event event = eventService.createEvent(workspaceId, projectId, request);
         URI location = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")
@@ -45,17 +45,18 @@ public class WorkspaceEventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventResponse>> getEvents(@PathVariable UUID workspaceId) {
-        List<Event> eventsByWorkspace = eventService.getEventsByWorkspace(workspaceId);
-        return ResponseEntity.ok(eventMapper.toResponseList(eventsByWorkspace));
+    public ResponseEntity<List<EventResponse>> getEvents(@PathVariable UUID workspaceId,
+                                                 @PathVariable UUID projectId) {
+        List<Event> events = eventService.getEventsByWorkspaceAndProject(workspaceId, projectId);
+        return ResponseEntity.ok(eventMapper.toResponseList(events));
     }
 
     @GetMapping(params = "type")
     public ResponseEntity<List<EventResponse>> getEventsByType(@PathVariable UUID workspaceId,
+                                                       @PathVariable UUID projectId,
                                                        @RequestParam String type) {
-        List<Event> eventsByWorkspaceAndType = eventService.getEventsByWorkspaceAndType(workspaceId,
-            type);
-        return ResponseEntity.ok(eventMapper.toResponseList(eventsByWorkspaceAndType));
+        List<Event> events = eventService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, type);
+        return ResponseEntity.ok(eventMapper.toResponseList(events));
     }
 
 }
