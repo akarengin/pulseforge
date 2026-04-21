@@ -9,9 +9,11 @@ import static org.mockito.Mockito.when;
 
 import com.akarengin.pulseforge.dto.EventRequest;
 import com.akarengin.pulseforge.entity.Event;
+import com.akarengin.pulseforge.entity.Project;
 import com.akarengin.pulseforge.entity.Workspace;
 import com.akarengin.pulseforge.mapper.EventMapper;
 import com.akarengin.pulseforge.repository.EventRepository;
+import com.akarengin.pulseforge.repository.ProjectRepository;
 import com.akarengin.pulseforge.repository.WorkspaceRepository;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +36,9 @@ class EventServiceTest {
     private WorkspaceRepository workspaceRepository;
 
     @Mock
+    private ProjectRepository projectRepository;
+
+    @Mock
     private EventMapper eventMapper;
 
     @InjectMocks
@@ -47,22 +52,24 @@ class EventServiceTest {
         EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
+        
         when(workspaceRepository.findById(workspaceId))
                 .thenReturn(Optional.of(Workspace.builder().id(workspaceId).build()));
+        when(projectRepository.findByWorkspace_IdAndId(workspaceId, projectId))
+                .thenReturn(Optional.of(Project.builder().id(projectId).build()));
+        
         Event mappedEvent = Event.builder().type("user_login").payload(Map.of("userId", 123)).build();
-        when(eventMapper.toEntity(eq(request), any(Workspace.class))).thenReturn(mappedEvent);
+        when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Event result = eventService.createEvent(workspaceId, request);
+        Event result = eventService.createEvent(workspaceId, projectId, request);
 
-        // Verify what was passed to the repository
         verify(eventRepository).save(eventCaptor.capture());
         Event saved = eventCaptor.getValue();
 
         assertThat(saved.getType()).isEqualTo("user_login");
         assertThat(saved.getPayload()).isEqualTo(Map.of("userId", 123));
-
-        // Verify service returns what repository returns
         assertThat(result).isEqualTo(saved);
     }
 
@@ -71,14 +78,18 @@ class EventServiceTest {
         EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
+        
         when(workspaceRepository.findById(workspaceId))
                 .thenReturn(Optional.of(Workspace.builder().id(workspaceId).build()));
+        when(projectRepository.findByWorkspace_IdAndId(workspaceId, projectId))
+                .thenReturn(Optional.of(Project.builder().id(projectId).build()));
+        
         Event mappedEvent = Event.builder().type("user_login").payload(Map.of("userId", 123)).build();
-        when(eventMapper.toEntity(eq(request), any(Workspace.class))).thenReturn(mappedEvent);
-
+        when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
         when(eventRepository.save(any(Event.class))).thenThrow(new RuntimeException("Database error"));
 
-        assertThatThrownBy(() -> eventService.createEvent(workspaceId, request))
+        assertThatThrownBy(() -> eventService.createEvent(workspaceId, projectId, request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
     }

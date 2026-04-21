@@ -47,6 +47,7 @@ class WorkspaceEventControllerTest {
     @Test
     void createEvent_returns201_setsLocation_andBody() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         var eventId = UUID.fromString("00000000-0000-0000-0000-000000000010");
         var created = Event.builder()
                 .id(eventId)
@@ -55,26 +56,26 @@ class WorkspaceEventControllerTest {
                 .timestamp(Instant.parse("2026-01-01T00:00:00Z"))
                 .build();
                 
-        // Use manual construction
         var expectedResponse = new EventResponse(
                         eventId,
                         workspaceId,
+                        projectId,
                         "user_login",
                         Map.of("userId", 123),
                         Instant.parse("2026-01-01T00:00:00Z"));
         
-        when(eventService.createEvent(eq(workspaceId), any(EventRequest.class))).thenReturn(created);
+        when(eventService.createEvent(eq(workspaceId), eq(projectId), any(EventRequest.class))).thenReturn(created);
         when(eventMapper.toResponse(any(Event.class))).thenReturn(expectedResponse);
 
         var request = new EventRequest("user_login", Map.of("userId", 123));
 
         mockMvc.perform(
-                post("/api/workspaces/" + workspaceId + "/events")
+                post("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location",
-                        "http://localhost/api/workspaces/" + workspaceId + "/events/" + eventId))
+                        "http://localhost/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events/" + eventId))
                 .andExpect(jsonPath("$.id").value(eventId.toString()))
                 .andExpect(jsonPath("$.type").value("user_login"));
     }
@@ -82,6 +83,7 @@ class WorkspaceEventControllerTest {
     @Test
     void createEvent_withBlankType_returns400() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         var requestJson = """
                 {
                   "type": "",
@@ -90,7 +92,7 @@ class WorkspaceEventControllerTest {
                 """;
 
         mockMvc.perform(
-                post("/api/workspaces/" + workspaceId + "/events")
+                post("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isBadRequest());
@@ -99,29 +101,31 @@ class WorkspaceEventControllerTest {
     @Test
     void getEvents_returns200AndList() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         var e1 = Event.builder().id(UUID.fromString("00000000-0000-0000-0000-000000000001")).type("a").payload(Map.of())
                 .timestamp(Instant.parse("2026-01-01T00:00:00Z")).build();
         var e2 = Event.builder().id(UUID.fromString("00000000-0000-0000-0000-000000000002")).type("b").payload(Map.of())
                 .timestamp(Instant.parse("2026-01-01T00:00:00Z")).build();
 
-        // Use manual construction
         var resp1 = new EventResponse(
                         UUID.fromString("00000000-0000-0000-0000-000000000001"),
                         workspaceId,
+                        projectId,
                         "a",
                         Map.of(),
                         Instant.parse("2026-01-01T00:00:00Z"));
         var resp2 = new EventResponse(
                         UUID.fromString("00000000-0000-0000-0000-000000000002"),
                         workspaceId,
+                        projectId,
                         "b",
                         Map.of(),
                         Instant.parse("2026-01-01T00:00:00Z"));
         
-        when(eventService.getEventsByWorkspace(workspaceId)).thenReturn(List.of(e1, e2));
+        when(eventService.getEventsByWorkspaceAndProject(workspaceId, projectId)).thenReturn(List.of(e1, e2));
         when(eventMapper.toResponseList(any())).thenReturn(List.of(resp1, resp2));
 
-        mockMvc.perform(get("/api/workspaces/" + workspaceId + "/events"))
+        mockMvc.perform(get("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(e1.getId().toString()))
                 .andExpect(jsonPath("$[1].id").value(e2.getId().toString()));
@@ -130,21 +134,22 @@ class WorkspaceEventControllerTest {
     @Test
     void getEventsByType_returns200AndList() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         var e = Event.builder().id(UUID.fromString("00000000-0000-0000-0000-000000000001")).type("user_login")
                 .payload(Map.of()).timestamp(Instant.parse("2026-01-01T00:00:00Z")).build();
 
-        // Use manual construction
         var resp1 = new EventResponse(
                         UUID.fromString("00000000-0000-0000-0000-000000000001"),
                         workspaceId,
+                        projectId,
                         "user_login",
                         Map.of(),
                         Instant.parse("2026-01-01T00:00:00Z"));
 
-        when(eventService.getEventsByWorkspaceAndType(workspaceId, "user_login")).thenReturn(List.of(e));
+        when(eventService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, "user_login")).thenReturn(List.of(e));
         when(eventMapper.toResponseList(any())).thenReturn(List.of(resp1));
 
-        mockMvc.perform(get("/api/workspaces/" + workspaceId + "/events").param("type", "user_login"))
+        mockMvc.perform(get("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events").param("type", "user_login"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(e.getId().toString()))
                 .andExpect(jsonPath("$[0].type").value("user_login"));
