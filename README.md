@@ -88,7 +88,7 @@ Production-grade, multi-tenant event ingestion and analytics platform.
 
 ## Tech Stack
 
-- **Runtime**: Java 25, Spring Boot 4.0
+- **Runtime**: Java 21, Spring Boot 3.5.10
 - **Database**: PostgreSQL 16 (HikariCP pooling)
 - **Cache**: Redis 7 (Lettuce client)
 - **Messaging**: RabbitMQ 3.13
@@ -98,7 +98,7 @@ Production-grade, multi-tenant event ingestion and analytics platform.
 ## Quick Start
 
 ### Prerequisites
-- Java 25
+- Java 21
 - Docker & Docker Compose
 
 ### Run Infrastructure
