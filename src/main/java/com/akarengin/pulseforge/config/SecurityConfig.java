@@ -27,10 +27,11 @@ public class SecurityConfig {
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()  // Health checks
+                .requestMatchers("/admin/**").permitAll()  // Admin endpoints (dev/test only)
                 .requestMatchers("/api/workspaces")
                 .permitAll()  // Allow workspace creation (POST /api/workspaces)
                 .requestMatchers("/api/workspaces/**")
-                .authenticated()  // Require auth for workspace operations apikey
+                .authenticated()  // Require auth for workspace operations
                 .anyRequest().denyAll()  // Deny everything else
             )
             .exceptionHandling(ex -> ex
