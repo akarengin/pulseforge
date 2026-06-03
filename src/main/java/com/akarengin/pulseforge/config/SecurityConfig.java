@@ -28,6 +28,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()  // Health checks
                 .requestMatchers("/admin/**").permitAll()  // Admin endpoints (dev/test only)
+                .requestMatchers("/api/users").permitAll()  // User registration
                 .requestMatchers("/api/workspaces")
                 .permitAll()  // Allow workspace creation (POST /api/workspaces)
                 .requestMatchers("/api/workspaces/**")
