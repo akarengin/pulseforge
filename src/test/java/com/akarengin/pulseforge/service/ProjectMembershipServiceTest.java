@@ -54,7 +54,7 @@ class ProjectMembershipServiceTest {
         when(projectMembershipRepository.findByProject_IdAndUser_Id(projectId, userId)).thenReturn(Optional.empty());
         when(projectMembershipRepository.save(any())).thenReturn(membership);
 
-        ProjectMembership result = projectMembershipService.addUserToProject(workspaceId, projectId, userId, "CONTRIBUTOR");
+        ProjectMembership result = projectMembershipService.addUserToProject(workspaceId, projectId, userId, ProjectRole.CONTRIBUTOR);
 
         assertThat(result).isNotNull();
         assertThat(result.getRole()).isEqualTo(ProjectRole.CONTRIBUTOR);

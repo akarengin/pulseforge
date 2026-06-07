@@ -27,7 +27,7 @@ public class ProjectMembershipService {
     private final WorkspaceMembershipService workspaceMembershipService;
 
     @Transactional
-    public ProjectMembership addUserToProject(UUID workspaceId, UUID projectId, UUID userId, String role) {
+    public ProjectMembership addUserToProject(UUID workspaceId, UUID projectId, UUID userId, ProjectRole role) {
         Project project = projectService.getProject(workspaceId, projectId);
 
         User user = userRepository.findById(userId)
@@ -50,7 +50,7 @@ public class ProjectMembershipService {
         ProjectMembership membership = ProjectMembership.builder()
             .project(project)
             .user(user)
-            .role(ProjectRole.valueOf(role))
+            .role(role)
             .build();
 
         log.debug("Saving project membership {}", membership);
