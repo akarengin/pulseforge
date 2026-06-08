@@ -44,7 +44,7 @@ class WorkspaceMembershipControllerTest {
     void addMember_shouldReturn201() throws Exception {
         UUID workspaceId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        WorkspaceMembershipRequest request = new WorkspaceMembershipRequest(userId, "MEMBER");
+        WorkspaceMembershipRequest request = new WorkspaceMembershipRequest(userId, WorkspaceRole.MEMBER);
 
         WorkspaceMembership membership = WorkspaceMembership.builder()
                 .id(UUID.randomUUID())
@@ -53,7 +53,7 @@ class WorkspaceMembershipControllerTest {
                 .role(WorkspaceRole.MEMBER)
                 .build();
 
-        when(workspaceMembershipService.addUserToWorkspace(any(UUID.class), any(UUID.class), any(String.class))).thenReturn(membership);
+        when(workspaceMembershipService.addUserToWorkspace(any(UUID.class), any(UUID.class), any(WorkspaceRole.class))).thenReturn(membership);
 
         mockMvc.perform(post("/api/workspaces/{workspaceId}/members", workspaceId)
                         .contentType(MediaType.APPLICATION_JSON)

@@ -27,7 +27,7 @@ public class WorkspaceMembershipService {
     private final UserRepository userRepository;
 
     @Transactional
-    public WorkspaceMembership addUserToWorkspace(UUID workspaceId, UUID userId, String role) {
+    public WorkspaceMembership addUserToWorkspace(UUID workspaceId, UUID userId, WorkspaceRole role) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> {
                 log.warn("Workspace not found for ID {}", workspaceId);
@@ -49,7 +49,7 @@ public class WorkspaceMembershipService {
         WorkspaceMembership membership = WorkspaceMembership.builder()
             .workspace(workspace)
             .user(user)
-            .role(WorkspaceRole.valueOf(role))
+            .role(role)
             .build();
 
         log.debug("Saving workspace membership {}", membership);

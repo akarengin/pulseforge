@@ -61,7 +61,7 @@ void testAddMember() throws Exception {
         membership.getId(), projectId, userId, "VIEWER", null
     );
 
-    when(projectMembershipService.addUserToProject(workspaceId, projectId, userId, "VIEWER")).thenReturn(membership);
+    when(projectMembershipService.addUserToProject(workspaceId, projectId, userId, ProjectRole.VIEWER)).thenReturn(membership);
     when(projectMembershipMapper.toResponse(membership)).thenReturn(response);
 
     var requestJson = """

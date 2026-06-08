@@ -53,7 +53,7 @@ class WorkspaceMembershipServiceTest {
         when(workspaceMembershipRepository.findByWorkspace_IdAndUser_Id(workspaceId, userId)).thenReturn(Optional.empty());
         when(workspaceMembershipRepository.save(any())).thenReturn(membership);
 
-        WorkspaceMembership result = workspaceMembershipService.addUserToWorkspace(workspaceId, userId, "MEMBER");
+        WorkspaceMembership result = workspaceMembershipService.addUserToWorkspace(workspaceId, userId, WorkspaceRole.MEMBER);
 
         assertThat(result).isNotNull();
         assertThat(result.getRole()).isEqualTo(WorkspaceRole.MEMBER);
