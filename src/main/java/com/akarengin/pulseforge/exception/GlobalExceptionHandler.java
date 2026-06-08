@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,7 +39,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        log.error("Malformed JSON request: {}", ex.getMessage());
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException ife && ife.getTargetType().isEnum()) {
+            String valid = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid value. Must be one of: " + valid);
+        }
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Malformed JSON request or invalid data types");
     }
 
@@ -53,8 +61,7 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(
                         error -> error.getField(),
                         error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : "Invalid parameter",
-                        (existing, replacement) -> replacement
-                ));
+                        (existing, replacement) -> replacement));
 
         log.error("Validation failed: {}", errors);
 
@@ -74,23 +81,23 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<Object> handleEnumMismatch(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<Object> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
             String valid = Arrays.stream(ex.getRequiredType().getEnumConstants())
-            .map(Object::toString)
-            .collect(Collectors.joining(", "));
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
             return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid value. Must be one of: " + valid);
         }
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameter: " + ex.getName());
     }
-    
-        private ResponseEntity<Object> buildErrorResponse(HttpStatus status, String message) {
-            Map<String, Object> body = new HashMap<>();
-            body.put("timestamp", LocalDateTime.now());
-            body.put("status", status.value());
-            body.put("error", status.getReasonPhrase());
-            body.put("message", message);
-    
-            return new ResponseEntity<>(body, status);
-        }
+
+    private ResponseEntity<Object> buildErrorResponse(HttpStatus status, String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+
+        return new ResponseEntity<>(body, status);
+    }
 }
