@@ -3,11 +3,11 @@ package com.akarengin.pulseforge;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.akarengin.pulseforge.entity.Project;
-import com.akarengin.pulseforge.entity.Workspace;
-import com.akarengin.pulseforge.repository.ProjectRepository;
-import com.akarengin.pulseforge.repository.WorkspaceRepository;
-import com.akarengin.pulseforge.service.ApiKeyService;
+import com.akarengin.pulseforge.project.entity.Project;
+import com.akarengin.pulseforge.workspace.entity.Workspace;
+import com.akarengin.pulseforge.project.repository.ProjectRepository;
+import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
+import com.akarengin.pulseforge.workspace.service.ApiKeyService;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

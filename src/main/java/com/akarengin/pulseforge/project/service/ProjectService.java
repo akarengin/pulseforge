@@ -1,0 +1,57 @@
+package com.akarengin.pulseforge.project.service;
+
+import com.akarengin.pulseforge.project.entity.Project;
+import com.akarengin.pulseforge.workspace.entity.Workspace;
+import com.akarengin.pulseforge.common.exception.ResourceNotFoundException;
+import com.akarengin.pulseforge.project.repository.ProjectRepository;
+import com.akarengin.pulseforge.workspace.service.WorkspaceService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ProjectService {
+
+    private final ProjectRepository projectRepository;
+    private final WorkspaceService workspaceService;
+
+    @Transactional
+    public Project createProject(UUID workspaceId, String name) {
+        Workspace workspace = workspaceService.getWorkspaceById(workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found: " + workspaceId));
+
+        if (projectRepository.existsByWorkspace_IdAndName(workspaceId, name)) {
+            throw new IllegalStateException("Project with name '" + name + "' already exists in this workspace");
+        }
+
+        Project project = Project.builder()
+                .workspace(workspace)
+                .name(name)
+                .build();
+
+        log.info("Creating project '{}' in workspace '{}'", name, workspaceId);
+        return projectRepository.save(project);
+    }
+
+    public List<Project> getProjectsByWorkspace(UUID workspaceId) {
+        return projectRepository.findByWorkspace_Id(workspaceId);
+    }
+
+    public Project getProject(UUID workspaceId, UUID projectId) {
+        return projectRepository.findByWorkspace_IdAndId(workspaceId, projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId + " in workspace " + workspaceId));
+    }
+
+    @Transactional
+    public void deleteProject(UUID workspaceId, UUID projectId) {
+        Project project = getProject(workspaceId, projectId);
+        projectRepository.delete(project);
+        log.info("Deleted project '{}' from workspace '{}'", projectId, workspaceId);
+    }
+}
