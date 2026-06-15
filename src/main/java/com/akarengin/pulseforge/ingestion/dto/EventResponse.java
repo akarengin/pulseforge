@@ -1,0 +1,16 @@
+package com.akarengin.pulseforge.ingestion.dto;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+public record EventResponse(
+    UUID id,
+    UUID workspaceId,
+    UUID projectId,
+    String type,
+    Map<String, Object> payload,
+    Instant timestamp
+) {
+
+}

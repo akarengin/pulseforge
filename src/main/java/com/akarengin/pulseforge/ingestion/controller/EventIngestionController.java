@@ -1,0 +1,62 @@
+package com.akarengin.pulseforge.ingestion.controller;
+
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.akarengin.pulseforge.ingestion.dto.EventRequest;
+import com.akarengin.pulseforge.ingestion.dto.EventResponse;
+import com.akarengin.pulseforge.ingestion.entity.Event;
+import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
+import com.akarengin.pulseforge.ingestion.service.EventService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/workspaces/{workspaceId}/projects/{projectId}/events")
+@RequiredArgsConstructor
+public class EventIngestionController {
+
+    private final EventService eventService;
+    private final EventMapper eventMapper;
+
+    @PostMapping
+    public ResponseEntity<EventResponse> createEvent(@PathVariable UUID workspaceId,
+                                             @PathVariable UUID projectId,
+                                             @Valid @RequestBody EventRequest request) {
+        Event event = eventService.createEvent(workspaceId, projectId, request);
+        URI location = ServletUriComponentsBuilder
+            .fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(event.getId())
+            .toUri();
+        return ResponseEntity.created(location).body(eventMapper.toResponse(event));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EventResponse>> getEvents(@PathVariable UUID workspaceId,
+                                                 @PathVariable UUID projectId) {
+        List<Event> events = eventService.getEventsByWorkspaceAndProject(workspaceId, projectId);
+        return ResponseEntity.ok(eventMapper.toResponseList(events));
+    }
+
+    @GetMapping(params = "type")
+    public ResponseEntity<List<EventResponse>> getEventsByType(@PathVariable UUID workspaceId,
+                                                       @PathVariable UUID projectId,
+                                                       @RequestParam String type) {
+        List<Event> events = eventService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, type);
+        return ResponseEntity.ok(eventMapper.toResponseList(events));
+    }
+
+}
