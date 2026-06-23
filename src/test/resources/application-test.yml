@@ -12,15 +12,18 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: pulseforge
+    password: pulseforge_dev_password
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
 management:
   health:
     redis:
-      enabled: false
-    rabbit:
       enabled: false
