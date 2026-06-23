@@ -1,20 +1,25 @@
 package com.akarengin.pulseforge.ingestion.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.akarengin.pulseforge.ingestion.controller.EventIngestionController;
+import com.akarengin.pulseforge.ingestion.dto.EventRequest;
+import com.akarengin.pulseforge.ingestion.dto.EventResponse;
+import com.akarengin.pulseforge.ingestion.entity.Event;
+import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
+import com.akarengin.pulseforge.ingestion.service.EventPublisher;
+import com.akarengin.pulseforge.ingestion.service.EventQueryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,13 +27,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.akarengin.pulseforge.ingestion.dto.EventRequest;
-import com.akarengin.pulseforge.ingestion.dto.EventResponse;
-import com.akarengin.pulseforge.ingestion.entity.Event;
-import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
-import com.akarengin.pulseforge.ingestion.service.EventService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(EventIngestionController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -40,45 +38,31 @@ class EventIngestionControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
-    private EventService eventService;
+    private EventQueryService eventQueryService;
+
+    @MockitoBean
+    private EventPublisher eventPublisher;
 
     @MockitoBean
     private EventMapper eventMapper;
 
     @Test
-    void createEvent_returns201_setsLocation_andBody() throws Exception {
+    void createEvent_returns202AndPublishesMessage() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        var eventId = UUID.fromString("00000000-0000-0000-0000-000000000010");
-        var created = Event.builder()
-                .id(eventId)
-                .type("user_login")
-                .payload(Map.of("userId", 123))
-                .timestamp(Instant.parse("2026-01-01T00:00:00Z"))
-                .build();
-                
-        var expectedResponse = new EventResponse(
-                        eventId,
-                        workspaceId,
-                        projectId,
-                        "user_login",
-                        Map.of("userId", 123),
-                        Instant.parse("2026-01-01T00:00:00Z"));
-        
-        when(eventService.createEvent(eq(workspaceId), eq(projectId), any(EventRequest.class))).thenReturn(created);
-        when(eventMapper.toResponse(any(Event.class))).thenReturn(expectedResponse);
-
         var request = new EventRequest("user_login", Map.of("userId", 123));
 
         mockMvc.perform(
                 post("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location",
-                        "http://localhost/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events/" + eventId))
-                .andExpect(jsonPath("$.id").value(eventId.toString()))
-                .andExpect(jsonPath("$.type").value("user_login"));
+                .andExpect(status().isAccepted());
+
+        verify(eventPublisher).publishEvent(argThat(eventMessage ->
+                eventMessage.workspaceId().equals(workspaceId)
+                        && eventMessage.projectId().equals(projectId)
+                        && eventMessage.type().equals("user_login")
+                        && eventMessage.payload().equals(Map.of("userId", 123))));
     }
 
     @Test
@@ -123,7 +107,7 @@ class EventIngestionControllerTest {
                         Map.of(),
                         Instant.parse("2026-01-01T00:00:00Z"));
         
-        when(eventService.getEventsByWorkspaceAndProject(workspaceId, projectId)).thenReturn(List.of(e1, e2));
+        when(eventQueryService.getEventsByWorkspaceAndProject(workspaceId, projectId)).thenReturn(List.of(e1, e2));
         when(eventMapper.toResponseList(any())).thenReturn(List.of(resp1, resp2));
 
         mockMvc.perform(get("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events"))
@@ -147,7 +131,7 @@ class EventIngestionControllerTest {
                         Map.of(),
                         Instant.parse("2026-01-01T00:00:00Z"));
 
-        when(eventService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, "user_login")).thenReturn(List.of(e));
+        when(eventQueryService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, "user_login")).thenReturn(List.of(e));
         when(eventMapper.toResponseList(any())).thenReturn(List.of(resp1));
 
         mockMvc.perform(get("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events").param("type", "user_login"))

@@ -55,7 +55,7 @@ class ApiKeyAuthenticationTests {
                 .header("X-API-Key", apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(eventJson))
-            .andExpect(status().isCreated());
+            .andExpect(status().isAccepted());
     }
 
     @Test
@@ -120,7 +120,7 @@ class ApiKeyAuthenticationTests {
                 .header("X-API-Key", apiKeyA)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(eventJson))
-            .andExpect(status().isCreated());
+            .andExpect(status().isAccepted());
 
         mockMvc.perform(post(
                 "/api/workspaces/" + workspaceA.getId() + "/projects/" + projectA.getId() + "/events")

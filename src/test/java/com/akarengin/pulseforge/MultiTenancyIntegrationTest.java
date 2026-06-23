@@ -12,7 +12,6 @@ import com.akarengin.pulseforge.project.repository.ProjectRepository;
 import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
-import com.akarengin.pulseforge.ingestion.service.EventService;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
 import java.util.HashMap;
 import java.util.List;
@@ -45,9 +44,6 @@ class MultiTenancyIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private EventService eventService;
 
     @Test
     void multiTenancy_workspaceIsolation() {
@@ -89,7 +85,7 @@ class MultiTenancyIntegrationTest {
     }
 
     @Test
-    @Disabled("TODO Day 6: Implement ProjectMembershipService.checkAccess() and EventService.getEventsByProject(workspaceId, projectId, userId)")
+    @Disabled("TODO Day 6: Implement ProjectMembershipService.checkAccess() and EventQueryService.getEventsByProject(workspaceId, projectId, userId)")
     void projectAccess_nonMember_cannotSeeProjectEvents() {
         // Arrange
         Workspace ws = workspaceRepository.save(Workspace.builder().name("Acme").build());
