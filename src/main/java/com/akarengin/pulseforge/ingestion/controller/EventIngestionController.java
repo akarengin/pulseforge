@@ -1,5 +1,7 @@
 package com.akarengin.pulseforge.ingestion.controller;
 
+import com.akarengin.pulseforge.ingestion.dto.EventMessage;
+import com.akarengin.pulseforge.ingestion.service.EventPublisher;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -12,13 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.dto.EventResponse;
 import com.akarengin.pulseforge.ingestion.entity.Event;
 import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
-import com.akarengin.pulseforge.ingestion.service.EventService;
+import com.akarengin.pulseforge.ingestion.service.EventQueryService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,26 +28,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EventIngestionController {
 
-    private final EventService eventService;
+    private final EventQueryService eventQueryService;
     private final EventMapper eventMapper;
+    private final EventPublisher eventPublisher;
 
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(@PathVariable UUID workspaceId,
                                              @PathVariable UUID projectId,
                                              @Valid @RequestBody EventRequest request) {
-        Event event = eventService.createEvent(workspaceId, projectId, request);
-        URI location = ServletUriComponentsBuilder
-            .fromCurrentRequest()
-            .path("/{id}")
-            .buildAndExpand(event.getId())
-            .toUri();
-        return ResponseEntity.created(location).body(eventMapper.toResponse(event));
+        EventMessage eventMessage = new EventMessage(request.type(), request.payload(), workspaceId, projectId);
+        eventPublisher.publishEvent(eventMessage);
+        return ResponseEntity.accepted().build();
     }
 
     @GetMapping
     public ResponseEntity<List<EventResponse>> getEvents(@PathVariable UUID workspaceId,
                                                  @PathVariable UUID projectId) {
-        List<Event> events = eventService.getEventsByWorkspaceAndProject(workspaceId, projectId);
+        List<Event> events = eventQueryService.getEventsByWorkspaceAndProject(workspaceId, projectId);
         return ResponseEntity.ok(eventMapper.toResponseList(events));
     }
 
@@ -55,7 +52,7 @@ public class EventIngestionController {
     public ResponseEntity<List<EventResponse>> getEventsByType(@PathVariable UUID workspaceId,
                                                        @PathVariable UUID projectId,
                                                        @RequestParam String type) {
-        List<Event> events = eventService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, type);
+        List<Event> events = eventQueryService.getEventsByWorkspaceAndProjectAndType(workspaceId, projectId, type);
         return ResponseEntity.ok(eventMapper.toResponseList(events));
     }
 

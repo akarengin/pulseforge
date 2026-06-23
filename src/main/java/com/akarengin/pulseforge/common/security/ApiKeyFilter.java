@@ -19,8 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ApiKeyFilter extends OncePerRequestFilter {
     private final ApiKeyValidator apiKeyValidator;
     private static final String API_KEY_HEADER = "X-API-Key";
-    private static final Pattern WORKSPACE_PATH_PATTERN =
-        Pattern.compile("/api/workspaces/([^/]+)");
+    private static final Pattern WORKSPACE_PATH_PATTERN = Pattern.compile("/api/workspaces/([^/]+)");
 
     public ApiKeyFilter(@Lazy ApiKeyValidator apiKeyValidator) {
         this.apiKeyValidator = apiKeyValidator;
@@ -41,17 +40,18 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         }
         UUID pathWorkspaceId = extractWorkspaceIdFromPath(request);
         if (!workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
             return;
         }
         ApiKeyPrincipal principal = new ApiKeyPrincipal(workspaceIdentity);
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null,
+                Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
         filterChain.doFilter(request, response);
     }
 
     private void handleUnauthorizedRequest(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
     }
 
     private UUID extractWorkspaceIdFromPath(HttpServletRequest request) {

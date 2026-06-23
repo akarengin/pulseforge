@@ -1,12 +1,9 @@
 package com.akarengin.pulseforge;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -132,29 +129,22 @@ public class ArchitectureBoundaryTest {
             .resideInAPackage(BASE + ".processing..")
             .because("ingestion and processing are decoupled by RabbitMQ — no direct Java dependency allowed");
 
-    // -------------------------------------------------------------------------
-    // PROCESSING — to be filled in later
-    //
-    // Rules to add once processing/ exists:
-    //
-    // 1. processing must not depend on ingestion.controller or ingestion.service
-    //    noClasses().that().resideInAPackage(BASE + ".processing..")
-    //        .should().dependOnClassesThat()
-    //        .resideInAnyPackage(
-    //            BASE + ".ingestion.controller..",
-    //            BASE + ".ingestion.service.."
-    //        )
-    //        .because("processing communicates with ingestion via RabbitMQ only");
-    //
-    // 2. processing must not depend on workspace or project repositories
-    //    noClasses().that().resideInAPackage(BASE + ".processing..")
-    //        .should().dependOnClassesThat()
-    //        .resideInAnyPackage(
-    //            BASE + ".workspace.repository..",
-    //            BASE + ".project.repository.."
-    //        )
-    //        .because("processing must call service APIs — not reach into foreign repositories");
-    // -------------------------------------------------------------------------
+    @ArchTest
+    static final ArchRule processing_must_not_depend_on_ingestion_controller =
+        noClasses().that().resideInAPackage(BASE + ".processing..")
+            .should().dependOnClassesThat()
+            .resideInAPackage(BASE + ".ingestion.controller..")
+            .because("processing communicates with ingestion via RabbitMQ only");
+
+    @ArchTest
+    static final ArchRule processing_must_not_depend_on_workspace_or_project_repositories =
+        noClasses().that().resideInAPackage(BASE + ".processing..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage(
+                BASE + ".workspace.repository..",
+                BASE + ".project.repository.."
+            )
+            .because("processing must call service APIs — not reach into foreign repositories");
 
     // -------------------------------------------------------------------------
     // ANALYTICS — to be filled in later

@@ -9,13 +9,13 @@ import static org.mockito.Mockito.when;
 
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.entity.Event;
-import com.akarengin.pulseforge.ingestion.service.EventService;
 import com.akarengin.pulseforge.project.entity.Project;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
 import com.akarengin.pulseforge.ingestion.repository.EventRepository;
 import com.akarengin.pulseforge.project.service.ProjectService;
 import com.akarengin.pulseforge.workspace.service.WorkspaceService;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceTest {
+class EventPersistenceServiceTest {
 
     @Mock
     private EventRepository eventRepository;
@@ -43,13 +43,13 @@ class EventServiceTest {
     private EventMapper eventMapper;
 
     @InjectMocks
-    private EventService eventService;
+    private EventPersistenceService eventPersistenceService;
 
     @Captor
     private ArgumentCaptor<Event> eventCaptor;
 
     @Test
-    void createEvent_buildsAndSavesEvent() {
+    void persist_buildsAndSavesEvent() throws IOException {
         EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -65,7 +65,7 @@ class EventServiceTest {
         when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Event result = eventService.createEvent(workspaceId, projectId, request);
+        Event result = eventPersistenceService.persist(workspaceId, projectId, request);
 
         verify(eventRepository).save(eventCaptor.capture());
         Event saved = eventCaptor.getValue();
@@ -76,7 +76,7 @@ class EventServiceTest {
     }
 
     @Test
-    void createEvent_whenRepositoryFails_throwsException() {
+    void persist_whenRepositoryFails_throwsException() throws IOException {
         EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -92,7 +92,7 @@ class EventServiceTest {
         when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
         when(eventRepository.save(any(Event.class))).thenThrow(new RuntimeException("Database error"));
 
-        assertThatThrownBy(() -> eventService.createEvent(workspaceId, projectId, request))
+        assertThatThrownBy(() -> eventPersistenceService.persist(workspaceId, projectId, request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
     }
