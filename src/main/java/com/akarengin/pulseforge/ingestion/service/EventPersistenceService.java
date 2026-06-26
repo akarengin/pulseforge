@@ -1,5 +1,6 @@
 package com.akarengin.pulseforge.ingestion.service;
 
+
 import com.akarengin.pulseforge.common.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.entity.Event;
@@ -12,11 +13,15 @@ import com.akarengin.pulseforge.workspace.service.WorkspaceService;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EventPersistenceService {
 
     private final EventRepository eventRepository;
@@ -24,7 +29,7 @@ public class EventPersistenceService {
     private final ProjectService projectService;
     private final EventMapper eventMapper;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Event persist(UUID workspaceId, UUID projectId, EventRequest request) throws IOException {
         Workspace workspace = workspaceService.getWorkspaceById(workspaceId)
             .orElseThrow(() -> new ResourceNotFoundException("Workspace not found for ID " + workspaceId));
@@ -32,6 +37,8 @@ public class EventPersistenceService {
         Project project = projectService.getProject(workspaceId, projectId);
 
         Event event = eventMapper.toEntity(request, workspace, project);
-        return eventRepository.save(event);
+
+        // Flush immediately to force constraint check before transaction commit.
+        return eventRepository.saveAndFlush(event);
     }
 }

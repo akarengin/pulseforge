@@ -23,8 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for multi-tenancy isolation at repository and service layers.
- * Day 2: Repository-layer workspace isolation
- * Day 6: Service-layer project access enforcement
  */
 @SpringBootTest
 @Transactional
@@ -65,12 +63,14 @@ class MultiTenancyIntegrationTest {
                 .project(project1)
                 .type("click")
                 .payload(new HashMap<>())
+                .idempotencyKey("key1")
                 .build());
         Event event2 = eventRepository.save(Event.builder()
                 .workspace(ws2)
                 .project(project2)
                 .type("click")
-                .payload(new HashMap<>())
+                .payload(new HashMap<>())       
+                .idempotencyKey("key2")
                 .build());
 
         // Act: query by workspace and project

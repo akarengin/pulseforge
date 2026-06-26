@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,14 +29,21 @@ public class EventConsumer {
                 eventMessage.workspaceId(), eventMessage.projectId(), eventMessage.type());
 
             EventRequest eventRequest = new EventRequest(eventMessage.type(),
-                eventMessage.payload());
+                eventMessage.payload(), eventMessage.idempotencyKey());
 
-            eventPersistenceService.persist(eventMessage.workspaceId(), eventMessage.projectId(), eventRequest);
+            eventPersistenceService.persist(eventMessage.workspaceId(), eventMessage.projectId(),
+                eventRequest);
 
             // Manual ACK - acknowledge successful processing
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 
             log.info("Event processed successfully: type={}", eventMessage.type());
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate event detected (redelivery): {}, ACKing without requeue", eventMessage.idempotencyKey());
+
+            // Manual ACK - acknowledge successful processing even for duplicates
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 
         } catch (IOException | RuntimeException e) {
             log.error("Failed to process event: {}", eventMessage, e);

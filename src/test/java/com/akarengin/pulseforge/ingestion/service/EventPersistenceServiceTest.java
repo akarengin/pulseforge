@@ -50,7 +50,7 @@ class EventPersistenceServiceTest {
 
     @Test
     void persist_buildsAndSavesEvent() throws IOException {
-        EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
+        EventRequest request = new EventRequest("user_login", Map.of("userId", 123), "dedup-key-test");
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
@@ -63,11 +63,11 @@ class EventPersistenceServiceTest {
         
         Event mappedEvent = Event.builder().type("user_login").payload(Map.of("userId", 123)).build();
         when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
-        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(eventRepository.saveAndFlush(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Event result = eventPersistenceService.persist(workspaceId, projectId, request);
 
-        verify(eventRepository).save(eventCaptor.capture());
+        verify(eventRepository).saveAndFlush(eventCaptor.capture());
         Event saved = eventCaptor.getValue();
 
         assertThat(saved.getType()).isEqualTo("user_login");
@@ -77,7 +77,7 @@ class EventPersistenceServiceTest {
 
     @Test
     void persist_whenRepositoryFails_throwsException() throws IOException {
-        EventRequest request = new EventRequest("user_login", Map.of("userId", 123));
+        EventRequest request = new EventRequest("user_login", Map.of("userId", 123), "dedup-key-test");
 
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
@@ -90,7 +90,7 @@ class EventPersistenceServiceTest {
         
         Event mappedEvent = Event.builder().type("user_login").payload(Map.of("userId", 123)).build();
         when(eventMapper.toEntity(eq(request), any(Workspace.class), any(Project.class))).thenReturn(mappedEvent);
-        when(eventRepository.save(any(Event.class))).thenThrow(new RuntimeException("Database error"));
+        when(eventRepository.saveAndFlush(any(Event.class))).thenThrow(new RuntimeException("Database error"));
 
         assertThatThrownBy(() -> eventPersistenceService.persist(workspaceId, projectId, request))
                 .isInstanceOf(RuntimeException.class)

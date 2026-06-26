@@ -46,7 +46,8 @@ class ApiKeyAuthenticationTests {
         String eventJson = """
             {
                 "type": "test_event",
-                "payload": {"action": "click"}
+                "payload": {"action": "click"},
+                "idempotencyKey": "dedup-key-123"
             }
             """;
 
@@ -71,7 +72,8 @@ class ApiKeyAuthenticationTests {
         String eventJson = """
             {
                 "type": "test_event",
-                "payload": {"action": "click"}
+                "payload": {"action": "click"},
+                "idempotencyKey": "dedup-key-123"
             }
             """;
 
@@ -111,7 +113,8 @@ class ApiKeyAuthenticationTests {
         String eventJson = """
             {
                 "type": "test_event",
-                "payload": {"action": "click"}
+                "payload": {"action": "click"},
+                "idempotencyKey": "dedup-key-123"
             }
             """;
 

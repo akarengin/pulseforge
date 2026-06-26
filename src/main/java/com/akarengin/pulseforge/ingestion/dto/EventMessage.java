@@ -7,6 +7,7 @@ public record EventMessage(
     String type,
     Map<String, Object> payload,
     UUID workspaceId,
-    UUID projectId
+    UUID projectId,
+    String idempotencyKey
 ) {
 }
