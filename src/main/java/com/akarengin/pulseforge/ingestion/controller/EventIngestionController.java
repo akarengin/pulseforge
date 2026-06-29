@@ -20,7 +20,6 @@ import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
 import com.akarengin.pulseforge.ingestion.service.EventQueryService;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 

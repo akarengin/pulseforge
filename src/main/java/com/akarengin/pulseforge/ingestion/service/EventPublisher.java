@@ -5,7 +5,6 @@ import com.akarengin.pulseforge.ingestion.dto.EventMessage;
 import com.akarengin.pulseforge.project.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
