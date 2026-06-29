@@ -50,7 +50,7 @@ class EventIngestionControllerTest {
     void createEvent_returns202AndPublishesMessage() throws Exception {
         var workspaceId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         var projectId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        var request = new EventRequest("user_login", Map.of("userId", 123));
+        var request = new EventRequest("user_login", Map.of("userId", 123), "random_uuid");
 
         mockMvc.perform(
                 post("/api/workspaces/" + workspaceId + "/projects/" + projectId + "/events")

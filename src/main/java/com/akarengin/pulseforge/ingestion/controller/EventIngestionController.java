@@ -2,7 +2,6 @@ package com.akarengin.pulseforge.ingestion.controller;
 
 import com.akarengin.pulseforge.ingestion.dto.EventMessage;
 import com.akarengin.pulseforge.ingestion.service.EventPublisher;
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +20,7 @@ import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
 import com.akarengin.pulseforge.ingestion.service.EventQueryService;
 
 import jakarta.validation.Valid;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -35,8 +35,8 @@ public class EventIngestionController {
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(@PathVariable UUID workspaceId,
                                              @PathVariable UUID projectId,
-                                             @Valid @RequestBody EventRequest request) {
-        EventMessage eventMessage = new EventMessage(request.type(), request.payload(), workspaceId, projectId);
+                                             @Valid @RequestBody EventRequest request) throws ResponseStatusException {
+        EventMessage eventMessage = new EventMessage(request.type(), request.payload(), workspaceId, projectId, request.idempotencyKey());
         eventPublisher.publishEvent(eventMessage);
         return ResponseEntity.accepted().build();
     }

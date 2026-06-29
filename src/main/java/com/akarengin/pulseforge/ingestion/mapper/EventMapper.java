@@ -24,6 +24,7 @@ public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "timestamp", ignore = true)
     @Mapping(target = "project", source = "project")
+    @Mapping(target = "idempotencyKey", source = "request.idempotencyKey")
     Event toEntity(EventRequest request, Workspace workspace, Project project);
 
 }

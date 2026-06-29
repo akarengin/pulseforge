@@ -13,7 +13,10 @@ public record EventRequest(
     @NotNull
     @NotEmpty(message = "Event payload cannot be empty")
     @Size(max = 100, message = "Payload cannot have more than 100 entries")
-    Map<String, Object> payload
+    Map<String, Object> payload,
+
+    @NotBlank(message = "Idempotency key is required")
+    String idempotencyKey
 ) {
 
 }

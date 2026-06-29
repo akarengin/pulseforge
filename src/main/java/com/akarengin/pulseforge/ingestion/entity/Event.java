@@ -20,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ import lombok.NoArgsConstructor;
 
 // Maps to 'events' table in PostgreSQL
 @Entity
-@Table(name = "events")
+@Table(name = "events", uniqueConstraints = {@UniqueConstraint(columnNames = {"workspace_id", "idempotency_key"})})
 @Data
 @Builder
 @NoArgsConstructor
@@ -57,6 +58,9 @@ public class Event {
 
     @Column(nullable = false)
     private Instant timestamp;
+
+    @Column(name = "idempotency_key", nullable = false)
+    private String idempotencyKey;
 
     // JPA lifecycle callback: automatically sets timestamp before first save
     @PrePersist

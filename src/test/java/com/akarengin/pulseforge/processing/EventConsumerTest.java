@@ -48,7 +48,8 @@ class EventConsumerTest {
             "user_login",
             Map.of("userId", 123),
             workspaceId,
-            projectId
+            projectId,
+            "dedup-key-1"
         );
 
         when(message.getMessageProperties()).thenReturn(messageProperties);
@@ -73,7 +74,8 @@ class EventConsumerTest {
             "deploy",
             Map.of("service", "api"),
             workspaceId,
-            projectId
+            projectId,
+            "dedup-key-2"
         );
 
         when(message.getMessageProperties()).thenReturn(messageProperties);
@@ -101,7 +103,8 @@ class EventConsumerTest {
             "error_event",
             Map.of("level", "critical"),
             workspaceId,
-            projectId
+            projectId,
+            "dedup-key-3"
         );
 
         when(message.getMessageProperties()).thenReturn(messageProperties);
