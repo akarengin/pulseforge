@@ -7,10 +7,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.akarengin.pulseforge.common.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.ingestion.config.RabbitConfig;
 import com.akarengin.pulseforge.ingestion.dto.EventMessage;
 import com.akarengin.pulseforge.project.service.ProjectService;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,11 +81,11 @@ class EventPublisherTest {
 
     @Test
     void projectNotFound_throws_doesNotPublish() {
-        doThrow(new EntityNotFoundException("Project not found"))
+        doThrow(new ResourceNotFoundException("Project not found"))
             .when(projectService).getProject(message.workspaceId(), message.projectId());
 
         assertThatThrownBy(() -> eventPublisher.publishEvent(message))
-            .isInstanceOf(EntityNotFoundException.class);
+            .isInstanceOf(ResourceNotFoundException.class);
 
         verifyNoInteractions(rabbitTemplate);
         verifyNoInteractions(idempotencyService);

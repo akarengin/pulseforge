@@ -24,6 +24,8 @@ public class EventPublisher {
         // Validates that the project exists and belongs to the workspace.
         projectService.getProject(eventMessage.workspaceId(), eventMessage.projectId());
 
+        boolean keyReservedHere = false;
+
         try {
             if (!idempotencyService.checkAndSet(eventMessage.workspaceId(),
                 eventMessage.idempotencyKey())) {
@@ -31,6 +33,7 @@ public class EventPublisher {
                     eventMessage.workspaceId(), eventMessage.idempotencyKey());
                 return;
             }
+            keyReservedHere = true;
         } catch (RuntimeException e) {
             log.warn("Failed to check idempotency key, proceeding (fail-open): workspaceId={}, idempotencyKey={}, error={}",
                 eventMessage.workspaceId(), eventMessage.idempotencyKey(), e.getMessage(), e);
@@ -44,6 +47,10 @@ public class EventPublisher {
         } catch (RuntimeException e) {
             log.error("Failed to publish event: workspaceId={}, projectId={}, error={}",
                 eventMessage.workspaceId(), eventMessage.projectId(), e.getMessage(), e);
+            if(keyReservedHere) {
+                idempotencyService.delete(eventMessage.workspaceId(), eventMessage.idempotencyKey());
+            }
+            throw e; // controller → 503; client knows to retry
         }
     }
 }
