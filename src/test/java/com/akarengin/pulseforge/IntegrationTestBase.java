@@ -23,7 +23,7 @@ public abstract class IntegrationTestBase {
         new RabbitMQContainer("rabbitmq:3.13-management-alpine");
 
     @Container
-    static final GenericContainer<?> redis =
+    protected static final GenericContainer<?> redis =
         new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
 
     // Must be static — Spring calls it before the context is created
