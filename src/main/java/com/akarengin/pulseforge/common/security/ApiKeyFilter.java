@@ -35,12 +35,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         }
         WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(apiKey);
         if (workspaceIdentity == null) {
-            handleUnauthorizedRequest(response);
+            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;
         }
         UUID pathWorkspaceId = extractWorkspaceIdFromPath(request);
         if (!workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
+            writeError(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
             return;
         }
         ApiKeyPrincipal principal = new ApiKeyPrincipal(workspaceIdentity);
@@ -50,8 +50,10 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void handleUnauthorizedRequest(HttpServletResponse response) throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 
     private UUID extractWorkspaceIdFromPath(HttpServletRequest request) {

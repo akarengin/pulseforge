@@ -18,6 +18,7 @@ import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceMembership;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceRole;
+import com.akarengin.pulseforge.workspace.repository.ApiKeyRepository;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceMembershipRepository;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
 import com.akarengin.pulseforge.ingestion.service.EventPersistenceService;
@@ -28,7 +29,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,6 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EventIntegrationTest extends IntegrationTestBase {
 
     @Autowired
@@ -63,6 +68,9 @@ public class EventIntegrationTest extends IntegrationTestBase {
     private UserRepository userRepository;
 
     @Autowired
+    private ApiKeyRepository apiKeyRepository;
+
+    @Autowired
     private ApiKeyService apiKeyService;
 
     @Autowired
@@ -81,7 +89,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         userRepository.deleteAll();
     }
 
-    @Test
+    @Test @Order(1)
     void happyPath_endToEnd() {
         Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-happy").build());
         Project project = projectRepository.save(Project.builder().workspace(workspace).name("P-happy").build());
@@ -104,7 +112,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         assertThat(saved.getProject().getId()).isEqualTo(project.getId());
     }
 
-    @Test
+    @Test @Order(2)
     void clientRetryDedup_redisPath() {
         Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-retry").build());
         Project project = projectRepository.save(Project.builder().workspace(workspace).name("P-retry").build());
@@ -129,7 +137,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         assertThat(redisTemplate.hasKey(redisKey)).isTrue();
     }
 
-    @Test
+    @Test @Order(3)
     void brokerRedeliveryDedup_dbConstraintPath() throws Exception {
         Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-redelivery").build());
         Project project = projectRepository.save(Project.builder().workspace(workspace).name("P-redelivery").build());
@@ -150,7 +158,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         assertThat(eventRepository.findByWorkspace_IdAndProject_Id(workspace.getId(), project.getId())).hasSize(1);
     }
 
-    @Test
+    @Test @Order(6)
     void redisFailOpen() {
         Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-failopen").build());
         Project project = projectRepository.save(Project.builder().workspace(workspace).name("P-failopen").build());
@@ -171,7 +179,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         }
     }
 
-    @Test
+    @Test @Order(4)
     void workspaceIsolation() {
         Workspace wsA = workspaceRepository.save(Workspace.builder().name("WS-A").build());
         Workspace wsB = workspaceRepository.save(Workspace.builder().name("WS-B").build());
@@ -197,7 +205,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         assertThat(crossQuery).isEmpty();
     }
 
-    @Test
+    @Test @Order(5)
     void authFailures() {
         Workspace wsA = workspaceRepository.save(Workspace.builder().name("WS-auth").build());
         Workspace wsB = workspaceRepository.save(Workspace.builder().name("WS-auth-B").build());
@@ -222,7 +230,7 @@ public class EventIntegrationTest extends IntegrationTestBase {
         assertThat(wrongWorkspace.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    @Test
+    @Test @Order(7)
     @Disabled("Enable after JWT auth is implemented — project membership enforcement requires userId from JWT principal")
     void projectAccessEnforcement() {
         Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-access").build());
