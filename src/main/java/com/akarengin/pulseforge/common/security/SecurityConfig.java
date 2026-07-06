@@ -18,7 +18,7 @@ public class SecurityConfig {
     private final ApiKeyFilter apiKeyFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, ApiKeyFilter apiKeyFilter)
+    public SecurityFilterChain filterChain(HttpSecurity http)
         throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)

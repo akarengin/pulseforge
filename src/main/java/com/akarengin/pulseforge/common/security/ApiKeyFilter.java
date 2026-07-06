@@ -39,7 +39,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
         UUID pathWorkspaceId = extractWorkspaceIdFromPath(request);
-        if (!workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
+        if (pathWorkspaceId != null && !workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
             writeError(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
             return;
         }
@@ -53,6 +53,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 
