@@ -90,4 +90,22 @@ class EventPublisherTest {
         verifyNoInteractions(rabbitTemplate);
         verifyNoInteractions(idempotencyService);
     }
+
+    @Test
+    void publishFailure_deletesReservedKey_andRethrows() {
+        when(idempotencyService.checkAndSet(message.workspaceId(), message.idempotencyKey()))
+            .thenReturn(true); // key was reserved here
+
+        doThrow(new RuntimeException("RabbitMQ unavailable"))
+            .when(rabbitTemplate).convertAndSend(
+                RabbitConfig.EVENTS_EXCHANGE, RabbitConfig.EVENTS_ROUTING_KEY, message);
+
+        assertThatThrownBy(() -> eventPublisher.publishEvent(message))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("RabbitMQ unavailable");
+
+        // Compensation: reserved key must be deleted so the client can retry with the same key
+        verify(idempotencyService).delete(message.workspaceId(), message.idempotencyKey());
+    }
+
 }

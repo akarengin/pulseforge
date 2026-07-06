@@ -2,6 +2,7 @@ package com.akarengin.pulseforge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.ingestion.entity.Event;
 import com.akarengin.pulseforge.ingestion.repository.EventRepository;
 import com.akarengin.pulseforge.project.entity.Project;
@@ -9,7 +10,6 @@ import com.akarengin.pulseforge.project.entity.ProjectMembership;
 import com.akarengin.pulseforge.project.entity.ProjectRole;
 import com.akarengin.pulseforge.project.repository.ProjectMembershipRepository;
 import com.akarengin.pulseforge.project.repository.ProjectRepository;
-import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
@@ -85,7 +85,7 @@ class MultiTenancyIntegrationTest {
     }
 
     @Test
-    @Disabled("TODO Day 6: Implement ProjectMembershipService.checkAccess() and EventQueryService.getEventsByProject(workspaceId, projectId, userId)")
+    @Disabled("TODO: Implement ProjectMembershipService.checkAccess(userId, projectId)")
     void projectAccess_nonMember_cannotSeeProjectEvents() {
         // Arrange
         Workspace ws = workspaceRepository.save(Workspace.builder().name("Acme").build());
@@ -116,15 +116,14 @@ class MultiTenancyIntegrationTest {
                 .payload(new HashMap<>())
                 .build());
 
-        // Act & Assert: member can access
-        // (This will fail until service layer enforcement exists)
-        // assertDoesNotThrow(() ->
-        //         eventService.getEventsByProject(ws.getId(), project.getId(), member.getId())
-        // );
-
-        // Act & Assert: non-member gets denied
-        // assertThrows(AccessDeniedException.class, () ->
-        //         eventService.getEventsByProject(ws.getId(), project.getId(), nonMember.getId())
-        // );
+//        // Act & Assert: member can access
+//         assertDoesNotThrow(() ->
+//                 eventService.getEventsByProject(ws.getId(), project.getId(), member.getId())
+//         );
+//
+//         // Act & Assert: non-member gets denied
+//         assertThrows(AccessDeniedException.class, () ->
+//                 eventService.getEventsByProject(ws.getId(), project.getId(), nonMember.getId())
+//         );
     }
 }

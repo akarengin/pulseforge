@@ -18,7 +18,7 @@ public class SecurityConfig {
     private final ApiKeyFilter apiKeyFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, ApiKeyFilter apiKeyFilter)
+    public SecurityFilterChain filterChain(HttpSecurity http)
         throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -28,15 +28,18 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/admin/**").permitAll()
                 .requestMatchers("/api/users").permitAll()
-                .requestMatchers("/api/workspaces")
-                .permitAll()
+                .requestMatchers("/api/workspaces").permitAll()
                 .requestMatchers("/api/workspaces/**")
                 .authenticated()
                 .anyRequest().denyAll()
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(401, "Unauthorized"))
+                {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                })
             )
             .addFilterBefore(apiKeyFilter,
                 UsernamePasswordAuthenticationFilter.class)
