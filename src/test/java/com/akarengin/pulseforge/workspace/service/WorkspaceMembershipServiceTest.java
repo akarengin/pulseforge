@@ -1,7 +1,6 @@
 package com.akarengin.pulseforge.workspace.service;
 
 import com.akarengin.pulseforge.common.entity.User;
-import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.user.service.UserService;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceMembership;

@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.akarengin.pulseforge.user.controller.UserController;
 import com.akarengin.pulseforge.user.dto.UserRequest;
 import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.common.exception.ResourceNotFoundException;
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
 import com.akarengin.pulseforge.user.mapper.UserMapper;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
@@ -37,6 +39,16 @@ class UserControllerTest {
 
     @MockitoBean
     private UserMapper userMapper;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    // Security filter dependencies
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
     @Test
     void createUser_shouldReturn201() throws Exception {
