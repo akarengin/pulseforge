@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.akarengin.pulseforge.workspace.dto.WorkspaceMembershipRequest;
 import com.akarengin.pulseforge.common.entity.User;
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceMembership;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceRole;
@@ -39,6 +42,16 @@ class WorkspaceMembershipControllerTest {
 
     @MockitoBean
     private WorkspaceMembershipMapper workspaceMembershipMapper;
+
+    // Security filter dependencies
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
     @Test
     void addMember_shouldReturn201() throws Exception {

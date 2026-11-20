@@ -1,5 +1,6 @@
 package com.akarengin.pulseforge;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -13,6 +14,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 public abstract class IntegrationTestBase {
+    
+    private static final String TEST_JWT_SECRET = "8ssKskDE7Wm5D8qwPx0TvRp1gZGxc8RxFjbZvHkPoc4=";
+
+    @BeforeAll
+    static void setTestJwtSecret() {
+        System.setProperty("JWT_SECRET", TEST_JWT_SECRET);
+    }
 
     @Container
     static final PostgreSQLContainer<?> postgres =

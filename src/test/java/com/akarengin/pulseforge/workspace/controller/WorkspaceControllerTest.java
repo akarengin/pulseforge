@@ -21,6 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.akarengin.pulseforge.workspace.dto.WorkspaceRequestDTO;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.service.WorkspaceService;
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(WorkspaceController.class)
@@ -34,6 +37,16 @@ class WorkspaceControllerTest {
 
     @MockitoBean
     private WorkspaceService workspaceService;
+
+    // Security filter dependencies
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
     @Test
     void createWorkspace_returns201AndBody_andSetsLocation() throws Exception {

@@ -2,20 +2,14 @@ package com.akarengin.pulseforge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.ingestion.entity.Event;
 import com.akarengin.pulseforge.ingestion.repository.EventRepository;
 import com.akarengin.pulseforge.project.entity.Project;
-import com.akarengin.pulseforge.project.entity.ProjectMembership;
-import com.akarengin.pulseforge.project.entity.ProjectRole;
-import com.akarengin.pulseforge.project.repository.ProjectMembershipRepository;
 import com.akarengin.pulseforge.project.repository.ProjectRepository;
-import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
 import java.util.HashMap;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,13 +29,7 @@ class MultiTenancyIntegrationTest {
     private ProjectRepository projectRepository;
 
     @Autowired
-    private ProjectMembershipRepository projectMembershipRepository;
-
-    @Autowired
     private EventRepository eventRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Test
     void multiTenancy_workspaceIsolation() {
@@ -84,46 +72,4 @@ class MultiTenancyIntegrationTest {
         assertThat(ws2Events).hasSize(1).contains(event2);
     }
 
-    @Test
-    @Disabled("TODO: Implement ProjectMembershipService.checkAccess(userId, projectId)")
-    void projectAccess_nonMember_cannotSeeProjectEvents() {
-        // Arrange
-        Workspace ws = workspaceRepository.save(Workspace.builder().name("Acme").build());
-        Project project = projectRepository.save(Project.builder()
-                .workspace(ws)
-                .name("Backend")
-                .build());
-        
-        User member = userRepository.save(User.builder()
-                .email("member@acme.com")
-                .passwordHash("hash")
-                .build());
-        User nonMember = userRepository.save(User.builder()
-                .email("nonmember@acme.com")
-                .passwordHash("hash")
-                .build());
-
-        projectMembershipRepository.save(ProjectMembership.builder()
-                .project(project)
-                .user(member)
-                .role(ProjectRole.VIEWER)
-                .build());
-
-        Event event = eventRepository.save(Event.builder()
-                .workspace(ws)
-                .project(project)
-                .type("deploy")
-                .payload(new HashMap<>())
-                .build());
-
-//        // Act & Assert: member can access
-//         assertDoesNotThrow(() ->
-//                 eventService.getEventsByProject(ws.getId(), project.getId(), member.getId())
-//         );
-//
-//         // Act & Assert: non-member gets denied
-//         assertThrows(AccessDeniedException.class, () ->
-//                 eventService.getEventsByProject(ws.getId(), project.getId(), nonMember.getId())
-//         );
-    }
 }

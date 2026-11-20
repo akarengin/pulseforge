@@ -10,11 +10,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
 import com.akarengin.pulseforge.project.dto.ProjectRequest;
 import com.akarengin.pulseforge.project.dto.ProjectResponse;
 import com.akarengin.pulseforge.project.entity.Project;
 import com.akarengin.pulseforge.project.mapper.ProjectMapper;
 import com.akarengin.pulseforge.project.service.ProjectService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
@@ -42,6 +45,16 @@ class ProjectControllerTest {
 
     @MockitoBean
     private ProjectMapper projectMapper;
+
+    // Security filter dependencies — needed so Spring can instantiate filter @Components
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
     @Test
     void createProject_returns201() throws Exception {

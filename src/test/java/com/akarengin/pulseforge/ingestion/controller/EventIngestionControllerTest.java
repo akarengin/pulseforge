@@ -9,12 +9,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.dto.EventResponse;
 import com.akarengin.pulseforge.ingestion.entity.Event;
 import com.akarengin.pulseforge.ingestion.mapper.EventMapper;
 import com.akarengin.pulseforge.ingestion.service.EventPublisher;
 import com.akarengin.pulseforge.ingestion.service.EventQueryService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
@@ -45,6 +48,16 @@ class EventIngestionControllerTest {
 
     @MockitoBean
     private EventMapper eventMapper;
+
+    // Security filter dependencies
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
     @Test
     void createEvent_returns202AndPublishesMessage() throws Exception {

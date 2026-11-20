@@ -10,8 +10,11 @@ import com.akarengin.pulseforge.project.entity.Project;
 import com.akarengin.pulseforge.project.entity.ProjectMembership;
 import com.akarengin.pulseforge.project.entity.ProjectRole;
 import com.akarengin.pulseforge.common.entity.User;
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
 import com.akarengin.pulseforge.project.mapper.ProjectMembershipMapper;
 import com.akarengin.pulseforge.project.service.ProjectMembershipService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,16 @@ class ProjectMembershipControllerTest {
 
     @MockitoBean
     private ProjectMembershipMapper projectMembershipMapper;
+
+    // Security filter dependencies
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
 
 @Test
 void testAddMember() throws Exception {
