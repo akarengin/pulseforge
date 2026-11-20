@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final ApiKeyFilter apiKeyFilter;
+    private final JwtAuthFilter jwtAuthFilter;
+    private final SecurityErrorWriter errorWriter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http)
@@ -29,24 +32,26 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").permitAll()
                 .requestMatchers("/api/users").permitAll()
                 .requestMatchers("/api/workspaces").permitAll()
-                .requestMatchers("/api/workspaces/**")
-                .authenticated()
-                .anyRequest().denyAll()
+                .requestMatchers("/auth/login").permitAll()
+                .requestMatchers("/api/workspaces/**").authenticated().anyRequest().denyAll()
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
-                {
-                    response.setStatus(401);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                })
+                    errorWriter.write(response, 401, "Unauthorized")
+                )
             )
-            .addFilterBefore(apiKeyFilter,
-                UsernamePasswordAuthenticationFilter.class)
+            // Both filters are mutually exclusive per request (different headers)
+            .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }
