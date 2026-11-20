@@ -16,6 +16,8 @@ public class IdempotencyService {
     private static final long TTL_SECONDS = 3600;
     private static final String PREFIX = "idempotency";
 
+    // Implements dedup semantics for async ingestion: "seen this key, skip it."
+    // Full idempotency (returning same response) is unnecessary for fire-and-forget 202 contracts.
     public boolean checkAndSet(UUID workspaceId, String idempotencyKey) {
         String key = buildKey(workspaceId, idempotencyKey);
         return Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, "1", Duration.ofHours(TTL_SECONDS)));

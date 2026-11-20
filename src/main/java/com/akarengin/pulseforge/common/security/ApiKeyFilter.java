@@ -21,8 +21,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     private static final String API_KEY_HEADER = "X-API-Key";
     private static final Pattern WORKSPACE_PATH_PATTERN = Pattern.compile("/api/workspaces/([^/]+)");
 
-    public ApiKeyFilter(@Lazy ApiKeyValidator apiKeyValidator) {
+    private final SecurityErrorWriter errorWriter;
+
+    public ApiKeyFilter(@Lazy ApiKeyValidator apiKeyValidator, SecurityErrorWriter errorWriter) {
         this.apiKeyValidator = apiKeyValidator;
+        this.errorWriter = errorWriter;
     }
 
     @Override
@@ -35,12 +38,12 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         }
         WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(apiKey);
         if (workspaceIdentity == null) {
-            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+            errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;
         }
         UUID pathWorkspaceId = extractWorkspaceIdFromPath(request);
         if (pathWorkspaceId != null && !workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
+            errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
             return;
         }
         ApiKeyPrincipal principal = new ApiKeyPrincipal(workspaceIdentity);
@@ -48,13 +51,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
         filterChain.doFilter(request, response);
-    }
-
-    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 
     private UUID extractWorkspaceIdFromPath(HttpServletRequest request) {
