@@ -20,6 +20,8 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     private final ApiKeyValidator apiKeyValidator;
     private static final String API_KEY_HEADER = "X-API-Key";
     private static final Pattern WORKSPACE_PATH_PATTERN = Pattern.compile("/api/workspaces/([^/]+)");
+    private static final Pattern API_KEY_ROUTE_PATTERN =
+            Pattern.compile("^/api/workspaces/[^/]+/projects/[^/]+/events/?$");
 
     private final SecurityErrorWriter errorWriter;
 
@@ -31,12 +33,16 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String apiKey = request.getHeader(API_KEY_HEADER);
-        if (apiKey == null) {
+        String requestApiKey = request.getHeader(API_KEY_HEADER);
+        if (requestApiKey == null) {
+            if (API_KEY_ROUTE_PATTERN.matcher(request.getRequestURI()).matches()) {
+                errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "API key required");
+                return;
+            }
             filterChain.doFilter(request, response);
             return;
         }
-        WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(apiKey);
+        WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(requestApiKey);
         if (workspaceIdentity == null) {
             errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;

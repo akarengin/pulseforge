@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.Collections;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Pattern API_KEY_ROUTE_PATTERN =
+            Pattern.compile("^/api/workspaces/[^/]+/projects/[^/]+/events/?$");
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final SecurityErrorWriter errorWriter;
@@ -30,6 +34,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        if (API_KEY_ROUTE_PATTERN.matcher(request.getRequestURI()).matches()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         final String header = request.getHeader("Authorization");
         if (isEmpty(header) || !header.startsWith("Bearer ")) {
