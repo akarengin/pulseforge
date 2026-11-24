@@ -17,8 +17,8 @@ public class JwtService {
     private final SecretKey secretKey;
     private final long expiration;
 
-    public JwtService(SecretKey jwtSecretKey, JwtProperties jwtProperties) {
-        this.secretKey = jwtSecretKey;
+    public JwtService(SecretKey secretKey, JwtProperties jwtProperties) {
+        this.secretKey = secretKey;
         this.expiration = jwtProperties.expiration();
     }
 

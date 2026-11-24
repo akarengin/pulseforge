@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class JwtConfig {
 
     @Bean
-    public SecretKey jwtSecretKey(JwtProperties jwtProperties) {
+    public SecretKey secretKey(JwtProperties jwtProperties) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.secret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
