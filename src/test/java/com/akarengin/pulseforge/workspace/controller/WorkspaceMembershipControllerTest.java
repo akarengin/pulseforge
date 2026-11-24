@@ -10,6 +10,7 @@ import com.akarengin.pulseforge.workspace.dto.WorkspaceMembershipRequest;
 import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.common.security.ApiKeyValidator;
 import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.common.security.SecurityErrorWriter;
 import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.entity.WorkspaceMembership;
@@ -24,10 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(WorkspaceMembershipController.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class WorkspaceMembershipControllerTest {
 
@@ -52,6 +55,9 @@ class WorkspaceMembershipControllerTest {
 
     @MockitoBean
     private ApiKeyValidator apiKeyValidator;
+
+    @MockitoBean
+    private SecurityErrorWriter securityErrorWriter;
 
     @Test
     void addMember_shouldReturn201() throws Exception {

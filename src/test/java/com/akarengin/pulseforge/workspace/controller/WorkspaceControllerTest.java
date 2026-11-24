@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -23,10 +24,12 @@ import com.akarengin.pulseforge.workspace.entity.Workspace;
 import com.akarengin.pulseforge.workspace.service.WorkspaceService;
 import com.akarengin.pulseforge.common.security.ApiKeyValidator;
 import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.common.security.SecurityErrorWriter;
 import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(WorkspaceController.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class WorkspaceControllerTest {
 
@@ -47,6 +50,9 @@ class WorkspaceControllerTest {
 
     @MockitoBean
     private ApiKeyValidator apiKeyValidator;
+
+    @MockitoBean
+    private SecurityErrorWriter securityErrorWriter;
 
     @Test
     void createWorkspace_returns201AndBody_andSetsLocation() throws Exception {

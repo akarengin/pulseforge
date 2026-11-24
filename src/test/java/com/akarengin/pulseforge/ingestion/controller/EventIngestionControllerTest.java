@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.akarengin.pulseforge.common.security.ApiKeyValidator;
 import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.common.security.SecurityErrorWriter;
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.dto.EventResponse;
 import com.akarengin.pulseforge.ingestion.entity.Event;
@@ -28,10 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(EventIngestionController.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class EventIngestionControllerTest {
 
@@ -58,6 +61,9 @@ class EventIngestionControllerTest {
 
     @MockitoBean
     private ApiKeyValidator apiKeyValidator;
+
+    @MockitoBean
+    private SecurityErrorWriter securityErrorWriter;
 
     @Test
     void createEvent_returns202AndPublishesMessage() throws Exception {

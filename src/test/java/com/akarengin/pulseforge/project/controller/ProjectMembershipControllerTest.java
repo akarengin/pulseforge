@@ -12,6 +12,7 @@ import com.akarengin.pulseforge.project.entity.ProjectRole;
 import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.common.security.ApiKeyValidator;
 import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.common.security.SecurityErrorWriter;
 import com.akarengin.pulseforge.project.mapper.ProjectMembershipMapper;
 import com.akarengin.pulseforge.project.service.ProjectMembershipService;
 import com.akarengin.pulseforge.user.repository.UserRepository;
@@ -21,10 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProjectMembershipController.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class ProjectMembershipControllerTest {
 
@@ -46,6 +49,9 @@ class ProjectMembershipControllerTest {
 
     @MockitoBean
     private ApiKeyValidator apiKeyValidator;
+
+    @MockitoBean
+    private SecurityErrorWriter securityErrorWriter;
 
 @Test
 void testAddMember() throws Exception {

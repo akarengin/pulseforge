@@ -2,7 +2,6 @@ package com.akarengin.pulseforge.common.security;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
-import com.akarengin.pulseforge.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +26,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/workspaces/[^/]+/projects/[^/]+/events/?$");
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final JwtUserLookup jwtUserLookup;
     private final SecurityErrorWriter errorWriter;
 
     @Override
@@ -54,9 +53,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final UUID userId = jwtService.extractUserId(token);
 
-        userRepository.findById(userId).ifPresentOrElse(
-            user -> {
-                UserPrincipal principal = new UserPrincipal(user.getId(), user.getEmail());
+        jwtUserLookup.findById(userId).ifPresentOrElse(
+            principal -> {
                 var authentication = new UsernamePasswordAuthenticationToken(
                         principal, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
