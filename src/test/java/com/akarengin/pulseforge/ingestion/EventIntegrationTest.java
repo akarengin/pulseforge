@@ -8,27 +8,20 @@ import com.akarengin.pulseforge.IntegrationTestBase;
 import com.akarengin.pulseforge.ingestion.dto.EventRequest;
 import com.akarengin.pulseforge.ingestion.entity.Event;
 import com.akarengin.pulseforge.ingestion.repository.EventRepository;
+import com.akarengin.pulseforge.ingestion.service.EventPersistenceService;
 import com.akarengin.pulseforge.project.entity.Project;
-import com.akarengin.pulseforge.project.entity.ProjectMembership;
-import com.akarengin.pulseforge.project.entity.ProjectRole;
 import com.akarengin.pulseforge.project.repository.ProjectMembershipRepository;
 import com.akarengin.pulseforge.project.repository.ProjectRepository;
-import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.akarengin.pulseforge.workspace.entity.Workspace;
-import com.akarengin.pulseforge.workspace.entity.WorkspaceMembership;
-import com.akarengin.pulseforge.workspace.entity.WorkspaceRole;
-import com.akarengin.pulseforge.workspace.repository.ApiKeyRepository;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceMembershipRepository;
 import com.akarengin.pulseforge.workspace.repository.WorkspaceRepository;
-import com.akarengin.pulseforge.ingestion.service.EventPersistenceService;
 import com.akarengin.pulseforge.workspace.service.ApiKeyService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -66,9 +59,6 @@ public class EventIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
 
     @Autowired
     private ApiKeyService apiKeyService;
@@ -228,24 +218,6 @@ public class EventIntegrationTest extends IntegrationTestBase {
         // Valid key but wrong workspace → 403
         ResponseEntity<Void> wrongWorkspace = postEvent(wsA.getId(), project.getId(), keyB, request);
         assertThat(wrongWorkspace.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-    }
-
-    @Test @Order(7)
-    @Disabled("Enable after JWT auth is implemented — project membership enforcement requires userId from JWT principal")
-    void projectAccessEnforcement() {
-        Workspace workspace = workspaceRepository.save(Workspace.builder().name("WS-access").build());
-        Project project = projectRepository.save(Project.builder().workspace(workspace).name("P-access").build());
-
-        User member = userRepository.save(User.builder().email("member@test.com").passwordHash("hash").build());
-        User nonMember = userRepository.save(User.builder().email("nonmember@test.com").passwordHash("hash").build());
-
-        workspaceMembershipRepository.save(WorkspaceMembership.builder().workspace(workspace).user(member).role(WorkspaceRole.MEMBER).build());
-        workspaceMembershipRepository.save(WorkspaceMembership.builder().workspace(workspace).user(nonMember).role(WorkspaceRole.MEMBER).build());
-
-        projectMembershipRepository.save(ProjectMembership.builder().project(project).user(member).role(ProjectRole.CONTRIBUTOR).build());
-        // nonMember has workspace membership but NO project membership
-
-        // TODO: POST with member JWT → 202; POST with nonMember JWT → 403
     }
 
     private ResponseEntity<Void> postEvent(UUID workspaceId, UUID projectId, String apiKey, EventRequest request) {

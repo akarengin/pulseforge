@@ -1,8 +1,7 @@
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
-    username: sa
-    password:
+    driver-class-name: org.h2.Driver
 
   flyway:
     enabled: false
@@ -11,20 +10,16 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
 
   rabbitmq:
     host: localhost
     port: 5672
-    username: pulseforge
-    password: pulseforge_dev_password
+    listener:
+      simple:
+        auto-startup: false
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 2
+  jwt:
+    # WARNING: This secret is for testing only. Do NOT use in production or commit to public repositories.
+    secret: Ip4Ct7uegTZgBZLAucn8Dkf0BH0dHL/+L39v+msHXZs=
+    expiration: 900000 # milliseconds

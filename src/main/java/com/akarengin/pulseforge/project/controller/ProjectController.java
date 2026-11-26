@@ -5,8 +5,11 @@ import com.akarengin.pulseforge.project.dto.ProjectResponse;
 import com.akarengin.pulseforge.project.entity.Project;
 import com.akarengin.pulseforge.project.mapper.ProjectMapper;
 import com.akarengin.pulseforge.project.service.ProjectService;
+import com.akarengin.pulseforge.common.security.UserPrincipal;
+import com.akarengin.pulseforge.project.service.ProjectMembershipService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -22,6 +25,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectMapper projectMapper;
+    private final ProjectMembershipService projectMembershipService;
 
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@PathVariable UUID workspaceId,
@@ -43,7 +47,11 @@ public class ProjectController {
 
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> getProject(@PathVariable UUID workspaceId,
-                                                    @PathVariable UUID projectId) {
+                                                      @PathVariable UUID projectId,
+                                                      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (userPrincipal != null) {
+            projectMembershipService.checkAccess(projectId, userPrincipal.userId());
+        }
         Project project = projectService.getProject(workspaceId, projectId);
         return ResponseEntity.ok(projectMapper.toResponse(project));
     }

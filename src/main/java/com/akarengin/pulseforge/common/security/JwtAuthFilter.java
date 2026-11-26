@@ -1,0 +1,67 @@
+package com.akarengin.pulseforge.common.security;
+
+import static org.springframework.util.ObjectUtils.isEmpty;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.UUID;
+import java.util.Collections;
+import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Pattern API_KEY_ROUTE_PATTERN =
+            Pattern.compile("^/api/workspaces/[^/]+/projects/[^/]+/events/?$");
+
+    private final JwtService jwtService;
+    private final JwtUserLookup jwtUserLookup;
+    private final SecurityErrorWriter errorWriter;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        if (API_KEY_ROUTE_PATTERN.matcher(request.getRequestURI()).matches()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        final String header = request.getHeader("Authorization");
+        if (isEmpty(header) || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        final String token = header.split(" ")[1].trim();
+        if (!jwtService.validateToken(token)) {
+            errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+            return;
+        }
+
+        final UUID userId = jwtService.extractUserId(token);
+
+        jwtUserLookup.findById(userId).ifPresentOrElse(
+            principal -> {
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        principal, null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            },
+            () -> log.warn("JWT references unknown userId: {}", userId)
+        );
+
+        filterChain.doFilter(request, response);
+    }
+}

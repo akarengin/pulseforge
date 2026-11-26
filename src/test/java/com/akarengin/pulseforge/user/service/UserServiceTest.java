@@ -3,7 +3,6 @@ package com.akarengin.pulseforge.user.service;
 import com.akarengin.pulseforge.common.entity.User;
 import com.akarengin.pulseforge.common.exception.ResourceNotFoundException;
 import com.akarengin.pulseforge.user.repository.UserRepository;
-import com.akarengin.pulseforge.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

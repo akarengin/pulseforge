@@ -10,6 +10,7 @@ import com.akarengin.pulseforge.user.service.UserService;
 import com.akarengin.pulseforge.workspace.service.WorkspaceMembershipService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,12 @@ public class ProjectMembershipService {
 
     public boolean isMember(UUID projectId, UUID userId) {
         return projectMembershipRepository.findByProject_IdAndUser_Id(projectId, userId).isPresent();
+    }
+
+    public void checkAccess(UUID projectId, UUID userId) {
+        if (!isMember(projectId, userId)) {
+            throw new AccessDeniedException("Not a project member");
+        }
     }
 
     public Optional<ProjectRole> getUserRole(UUID projectId, UUID userId) {

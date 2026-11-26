@@ -10,11 +10,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.akarengin.pulseforge.common.security.ApiKeyValidator;
+import com.akarengin.pulseforge.common.security.JwtService;
+import com.akarengin.pulseforge.common.security.SecurityErrorWriter;
 import com.akarengin.pulseforge.project.dto.ProjectRequest;
 import com.akarengin.pulseforge.project.dto.ProjectResponse;
 import com.akarengin.pulseforge.project.entity.Project;
 import com.akarengin.pulseforge.project.mapper.ProjectMapper;
+import com.akarengin.pulseforge.project.service.ProjectMembershipService;
 import com.akarengin.pulseforge.project.service.ProjectService;
+import com.akarengin.pulseforge.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
@@ -24,10 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProjectController.class)
+@ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class ProjectControllerTest {
 
@@ -41,7 +48,23 @@ class ProjectControllerTest {
     private ProjectService projectService;
 
     @MockitoBean
+    private ProjectMembershipService projectMembershipService;
+
+    @MockitoBean
     private ProjectMapper projectMapper;
+
+    // Security filter dependencies — needed so Spring can instantiate filter @Components
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private ApiKeyValidator apiKeyValidator;
+
+    @MockitoBean
+    private SecurityErrorWriter securityErrorWriter;
 
     @Test
     void createProject_returns201() throws Exception {

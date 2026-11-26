@@ -20,27 +20,36 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     private final ApiKeyValidator apiKeyValidator;
     private static final String API_KEY_HEADER = "X-API-Key";
     private static final Pattern WORKSPACE_PATH_PATTERN = Pattern.compile("/api/workspaces/([^/]+)");
+    private static final Pattern API_KEY_ROUTE_PATTERN =
+            Pattern.compile("^/api/workspaces/[^/]+/projects/[^/]+/events/?$");
 
-    public ApiKeyFilter(@Lazy ApiKeyValidator apiKeyValidator) {
+    private final SecurityErrorWriter errorWriter;
+
+    public ApiKeyFilter(@Lazy ApiKeyValidator apiKeyValidator, SecurityErrorWriter errorWriter) {
         this.apiKeyValidator = apiKeyValidator;
+        this.errorWriter = errorWriter;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String apiKey = request.getHeader(API_KEY_HEADER);
-        if (apiKey == null) {
+        String requestApiKey = request.getHeader(API_KEY_HEADER);
+        if (requestApiKey == null) {
+            if (API_KEY_ROUTE_PATTERN.matcher(request.getRequestURI()).matches()) {
+                errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "API key required");
+                return;
+            }
             filterChain.doFilter(request, response);
             return;
         }
-        WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(apiKey);
+        WorkspaceIdentity workspaceIdentity = apiKeyValidator.validateApiKey(requestApiKey);
         if (workspaceIdentity == null) {
-            writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+            errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
             return;
         }
         UUID pathWorkspaceId = extractWorkspaceIdFromPath(request);
         if (pathWorkspaceId != null && !workspaceIdentity.workspaceId().equals(pathWorkspaceId)) {
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
+            errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, "API key does not match workspace");
             return;
         }
         ApiKeyPrincipal principal = new ApiKeyPrincipal(workspaceIdentity);
@@ -48,13 +57,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
         filterChain.doFilter(request, response);
-    }
-
-    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 
     private UUID extractWorkspaceIdFromPath(HttpServletRequest request) {

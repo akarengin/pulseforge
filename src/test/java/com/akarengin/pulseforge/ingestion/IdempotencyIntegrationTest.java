@@ -29,8 +29,10 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class IdempotencyIntegrationTest {
 
     @Autowired
@@ -107,7 +109,7 @@ class IdempotencyIntegrationTest {
         Workspace ws = workspaceRepository.save(Workspace.builder().name("Test").build());
         Project project = projectRepository.save(Project.builder().workspace(ws).name("P1").build());
 
-        EventRequest request1 = new EventRequest("click", Map.of("a", "1"), "key-1");
+                EventRequest request1 = new EventRequest("click", Map.of("a", "1"), "key-1");
         EventRequest request2 = new EventRequest("click", Map.of("a", "2"), "key-2");
 
         // Act
